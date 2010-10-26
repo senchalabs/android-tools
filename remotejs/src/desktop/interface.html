@@ -1,0 +1,79 @@
+<html>
+<head>
+<style>
+button.device {
+  border: 0; padding: 0.3em 1.1em; border-radius: 1.1em; color: white;
+  background-image: -webkit-gradient(linear, 0% 0, 0% 100%, from(#C1FA3B), color-stop(0.02, #8FCA05), to(#5A7F03));
+}
+
+body {
+  background-color: white;
+  margin: 0;
+  padding: 100 0 0 0;
+}
+div#header {
+  background-color: black;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0 10 0 10;
+}
+div#content {
+  padding-top: 5;
+}
+div#footer {
+  width: 97%;
+  padding: 5;
+}
+input#userinput {
+  border: 0;
+  width: 98%;
+}
+@media screen {
+  body>div#header {
+   position: fixed;
+  }
+}
+* html body {
+  overflow: hidden;
+}
+* html div#content {
+  height: 100%;
+  overflow: auto;
+}
+</style>
+<link href="qrc:/codemirror/css/jscolors.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="qrc:/codemirror/js/highlight.js"></script>
+<script type="text/javascript" src="qrc:/codemirror/js/parsejavascript.js"></script>
+<script type="text/javascript" src="qrc:/codemirror/js/stringstream.js"></script>
+<script type="text/javascript" src="qrc:/codemirror/js/tokenize.js"></script>
+<script type="text/javascript" src="qrc:/codemirror/js/tokenizejavascript.js"></script>
+</head>
+<body>
+<div id="header">
+  <img style="padding-right: 10;" src="qrc:/sencha_logo.png" align="right" valign="bottom" width=200>
+  <div id="devicelist" style="display: none">
+    <p id="devices" style="color: #666;">Select a device</p>
+    <menu id="devicemenu"></menu>
+  </div>
+  <div id="help" style="display: none;">
+    <p style="color: #666">Enter a JavaScript command.
+      You can use <code>console.log</code> to print a value, e.g.
+      <code>console.log(document.title)</code>. Type an URL to open it,
+      e.g <code>www.example.com</code>.
+    </p>
+  </div>
+</div>
+<div id="content">
+</div>
+<div id="footer">
+  <form onsubmit="return execute();" id="entry" style="display: none;">
+  <label for="userinput"> > </label>
+  <input type="text" id="userinput" autofocus/>
+  </form>
+</div>
+<script type="text/javascript" src="qrc:/interface.js"></script>
+</body>
+</html>

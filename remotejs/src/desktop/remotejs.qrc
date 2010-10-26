@@ -1,0 +1,17 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/">
+        <file>interface.html</file>
+        <file>interface.js</file>
+
+        <file>codemirror/css/jscolors.css</file>
+        <file>codemirror/js/highlight.js</file>
+        <file>codemirror/js/parsejavascript.js</file>
+        <file>codemirror/js/stringstream.js</file>
+        <file>codemirror/js/tokenize.js</file>
+        <file>codemirror/js/tokenizejavascript.js</file>
+
+        <file>sencha_logo.png</file>
+
+        <file alias="RemoteJS.apk">../android/bin/RemoteJS.apk</file>
+    </qresource>
+</RCC>
