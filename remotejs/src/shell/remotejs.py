@@ -135,7 +135,8 @@ def mainThread():
 
     printInfo("RemoteJS - Remote JavaScript Console for Android.")
     printInfo("Please wait...")
-    adb.setTargetDevice(devices[0])
+    if not adb.targetDevice():
+        adb.setTargetDevice(devices[0])
 
     if not OPTION_NOHOSTUPDATE in args:
         error = adb.installDeviceTool()
