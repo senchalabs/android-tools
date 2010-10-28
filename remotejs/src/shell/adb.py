@@ -116,6 +116,15 @@ def shell(cmd):
         endConnection(socket)
         return None
 
+def reboot():
+    ok, socket = startConnection()
+    if not ok:
+        return False
+    sendData(socket, 'reboot:')
+    ok = readOkay(socket)
+    endConnection(socket)
+    return ok
+
 def isAvailable():
     return query('version').startswith('Android Debug Bridge')
 
