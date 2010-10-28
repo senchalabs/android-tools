@@ -110,6 +110,7 @@ def mainThread():
         printError("'adb' not found, please add its location to $PATH.")
         return ExitCode.AdbNotFound
 
+    adb.startServer()
     devices = adb.devices()
 
     if len(devices) == 0:

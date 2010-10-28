@@ -160,6 +160,9 @@ def filterLogcat(line):
     line = re.sub(r'\r\n', '', line);
     return line
 
+def startServer():
+    execute('start-server')
+
 # lineHandler must return a string
 def readLogcat(lineHandler = filterLogcat):
     cmd = ' logcat -c' # flush log
