@@ -27,6 +27,7 @@ import errno
 import os
 import re
 import socket
+import struct
 import sys
 import tempfile
 from subprocess import Popen, PIPE, STDOUT
@@ -125,6 +126,40 @@ def reboot():
     ok = readOkay(socket)
     endConnection(socket)
     return ok
+
+def framebuffer():
+    def headerMap(ints):
+        if len(ints) == 12:
+            return {'bpp': ints[0], 'size': ints[1], 'width': ints[2], 'height': ints[3],
+                    'red':   {'offset': ints[4],  'length': ints[5]},
+                    'blue':  {'offset': ints[6],  'length': ints[7]},
+                    'green': {'offset': ints[8],  'length': ints[9]},
+                    'alpha': {'offset': ints[10], 'length': ints[11]}}
+        else:
+            return {'size': ints[0], 'width': ints[1], 'height': ints[2]}
+
+    ok, socket = startConnection()
+    if not ok:
+        return None, None
+    sendData(socket, 'framebuffer:')
+    if readOkay(socket):
+        version = struct.unpack('@I', readData(socket, 4))[0] # ntohl
+        if version == 16: # compatibility mode
+            headerFields = 3 # size, width, height
+        else:
+            headerFields = 12 # bpp, size, width, height, 4*(offset, length)
+        header = headerMap(struct.unpack('@IIIIIIIIIIII', readData(socket, headerFields * 4)))
+        sendData(socket, '\x00')
+        data = readData(socket)
+        result = ""
+        while len(data):
+            result += data
+            data = readData(socket)
+        endConnection(socket)
+        return header, result # pass size returned in header
+    else:
+        endConnection(socket)
+        return None, None
 
 def isAvailable():
     return query('version').startswith('Android Debug Bridge')
