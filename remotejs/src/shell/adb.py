@@ -31,6 +31,7 @@ import sys
 import tempfile
 from subprocess import Popen, PIPE, STDOUT
 
+_ADB_PORT = 5037
 _LOG_FILTER = "RemoteJS"
 _TARGET_ACTIVITY = "com.sencha.remotejs/.RemoteJS"
 
