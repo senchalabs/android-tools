@@ -99,6 +99,23 @@ def devices():
             list.append(re.sub(r'\s*device', '', elem))
     return list
 
+def shell(cmd):
+    ok, socket = startConnection()
+    if not ok:
+        return None
+    sendData(socket, 'shell:' + cmd)
+    if readOkay(socket):
+        data = readData(socket)
+        result = ""
+        while len(data):
+            result += data
+            data = readData(socket)
+        endConnection(socket)
+        return result
+    else:
+        endConnection(socket)
+        return None
+
 def isAvailable():
     return query('version').startswith('Android Debug Bridge')
 
