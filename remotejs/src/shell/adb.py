@@ -26,6 +26,7 @@ import base64
 import errno
 import os
 import re
+import socket
 import sys
 import tempfile
 from subprocess import Popen, PIPE, STDOUT
@@ -48,6 +49,25 @@ def targetDevice():
 def setTargetDevice(id):
     global _g_targetDevice
     _g_targetDevice = id
+
+def startConnection():
+    _g_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    _g_socket.connect(('127.0.0.1', _ADB_PORT))
+    sendData(_g_socket, 'host:transport:' + targetDevice())
+    return readOkay(_g_socket), _g_socket
+
+def endConnection(socket):
+    socket.close()
+
+def readData(socket, max = 4096):
+    return socket.recv(max)
+
+def readOkay(socket):
+    data = socket.recv(4)
+    return data[0] == 'O' and data[1] == 'K' and data[2] == 'A' and data[3] == 'Y'
+
+def sendData(socket, str):
+    return socket.sendall('%04X%s' % (len(str), str))
 
 def execute(cmd):
     fullCmd = 'adb '
