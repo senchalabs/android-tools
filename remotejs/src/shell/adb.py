@@ -92,14 +92,27 @@ def query(cmd):
     return output;
 
 def devices():
-    devices = query('devices');
-    devices = re.sub('List of devices attached\s+', '', devices)
-    devices = devices.splitlines();
-    list = []
-    for elem in devices:
-        if elem.find('device') != -1:
-            list.append(re.sub(r'\s*device', '', elem))
-    return list
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('127.0.0.1', _ADB_PORT))
+    sendData(sock, 'host:devices')
+    if readOkay(sock):
+        readData(sock, 4) # payload size in hex
+        data = readData(sock)
+        reply = ""
+        while len(data):
+            reply += data
+            data = readData(sock)
+        endConnection(sock)
+        devices = re.sub('List of devices attached\s+', '', reply)
+        devices = devices.splitlines();
+        list = []
+        for elem in devices:
+            if elem.find('device') != -1:
+                list.append(re.sub(r'\s*device', '', elem))
+        return list
+    else: # adb server not running
+        endConnection(sock)
+        return None
 
 def shell(cmd):
     ok, socket = startConnection()
