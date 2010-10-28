@@ -138,8 +138,11 @@ def installDeviceTool():
     return ok, reply
 
 def uninstall(apk):
-    output = query('uninstall ' + apk).strip()
-    return output == 'Success'
+    reply = shell('pm uninstall ' + apk)
+    if reply:
+        return reply.find('Success') != -1
+    else:
+        return False
 
 def install(apk):
     reply = query('install ' + apk).strip().split('\n')[-1]
