@@ -161,6 +161,57 @@ def framebuffer():
         endConnection(socket)
         return None, None
 
+def captureScreenToLocalFile(fileName):
+    def normalizeFrom8888(data):
+        for i in range(0, len(data), 4):
+            color = data[i:i+4]
+            data[i] = color[header['red']['offset'] / 8]
+            data[i+1] = color[header['green']['offset'] / 8]
+            data[i+2] = color[header['blue']['offset'] / 8]
+            if header['bpp'] == 32:
+                if header['alpha']['length'] == 0:
+                    data[i+3] = 255
+                else:
+                    data[i+3] = color[header['alpha']['offset'] / 8]
+        return data
+
+    def normalizeFrom565(data):
+        result = []
+        length = len(data)
+        for i in range(0, length, 2):
+            # isolate color components, assume RGB565
+            short = struct.pack('BB', data[i], data[i+1])
+            pixel = struct.unpack('@H', short)[0]
+            c1 = (pixel & 0b1111100000000000) >> 11
+            c2 = (pixel & 0b0000011111100000) >> 5
+            c3 = (pixel & 0b11111)
+            # convert color format and prepare result
+            result.append(c1 * 255 / 31)
+            result.append(c2 * 255 / 63)
+            result.append(c3 * 255 / 31)
+            # this approximation should be faster but is not really for some reason
+            #result.append((c1 << 3) | (c1 >> 2))
+            #result.append((c2 << 2) | (c2 >> 4))
+            #result.append((c3 << 3) | (c3 >> 2))
+        return result
+
+    header, data = framebuffer()
+
+    file = open(fileName, 'wb')
+    data = list(data)
+    for i in range(len(data)):
+        data[i] = ord(data[i])
+
+    if header['bpp'] == 32:
+        pngWriter = png.Writer(size=(header['width'], header['height']), alpha=True)
+        pngWriter.write_array(file, normalizeFrom8888(data))
+    else: # assuming 16bpp 565 format
+        pngWriter = png.Writer(size=(header['width'], header['height']), alpha=False)
+        data = normalizeFrom565(data)
+        pngWriter.write_array(file, data)
+
+    file.close()
+
 def isAvailable():
     return query('version').startswith('Android Debug Bridge')
 
@@ -186,25 +237,6 @@ def install(apk):
         return True, reply
     else:
         return False, reply
-
-def captureScreen(width, height, fileName, compression = 9):
-    file = tempfile.NamedTemporaryFile()
-    tempFileName = file.name
-    file.close()
-
-    execute('pull /dev/graphics/fb0 ' + tempFileName)
-
-    file = open(tempFileName, 'rb')
-    rawImg = file.read()
-    rawImg = list(rawImg)
-    for i in range(len(rawImg)):
-        rawImg[i] = ord(rawImg[i])
-    file.close()
-
-    pngWriter = png.Writer(size=(width, height), alpha=True, compression=compression)
-    file = open(fileName, 'wb')
-    pngWriter.write_array(file, rawImg)
-    file.close()
 
 def evaluateJS(js):
     expr = base64.b64encode('javascript:(function() { ' + js + '; })()');
