@@ -229,7 +229,7 @@ def isAvailable():
     return query('version').startswith('Android Debug Bridge')
 
 def installDeviceTool():
-    uninstall('com.sencha.remote');
+    uninstall('com.sencha.remotejs');
     file = tempfile.NamedTemporaryFile()
     file.write(base64.b64decode(_g_base64Apk))
     file.flush()
