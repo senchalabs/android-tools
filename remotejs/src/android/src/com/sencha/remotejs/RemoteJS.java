@@ -24,6 +24,7 @@ package com.sencha.remotejs;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.*;
 import android.os.Bundle;
 import android.util.Log;
 import android.webkit.*;
@@ -73,13 +74,22 @@ public class RemoteJS extends Activity {
         }
     }
 
+    static final String ACTION_CAPTURE = "com.sencha.remotejs.ACTION_CAPTURE";
+
     protected void onNewIntent(Intent intent) {
-        String base64 = intent.getDataString();
-        if (base64 != null) {
-            try {
-                String address = JSBase64.decode(base64);
-                mWebView.loadUrl(address);
-            } catch (ParseException e) {
+        if (ACTION_CAPTURE.equals(intent.getAction())) {
+            Picture picture = mWebView.capturePicture();
+            Bitmap buffer = Bitmap.createBitmap(picture.getWidth(), picture.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(buffer);
+            canvas.drawPicture(picture);
+        } else {
+            String base64 = intent.getDataString();
+            if (base64 != null) {
+                try {
+                    String address = JSBase64.decode(base64);
+                    mWebView.loadUrl(address);
+                } catch (ParseException e) {
+                }
             }
         }
     }
