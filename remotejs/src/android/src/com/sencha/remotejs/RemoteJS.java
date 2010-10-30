@@ -78,10 +78,25 @@ public class RemoteJS extends Activity {
 
     protected void onNewIntent(Intent intent) {
         if (ACTION_CAPTURE.equals(intent.getAction())) {
+            Log.i(LOGTAG, "Starting capture...");
             Picture picture = mWebView.capturePicture();
             Bitmap buffer = Bitmap.createBitmap(picture.getWidth(), picture.getHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(buffer);
             canvas.drawPicture(picture);
+            Log.i(LOGTAG, "Capture finished.");
+            Log.i(LOGTAG, "Buffer START " + buffer.getWidth() + " " + buffer.getHeight());
+            for (int y = 0; y < buffer.getHeight(); ++y)
+                for (int x = 0; x < buffer.getWidth(); ++x) {
+                    int pixel = buffer.getPixel(x, y);
+                    int red = (pixel >> 16) & 0xff;
+                    int green = (pixel >> 8) & 0xff;
+                    int blue = pixel & 0xff;
+                    // skip white pixel (very common)
+                    if (red != 255 && green != 255 & blue != 255)
+                        Log.i(LOGTAG, " " + x + " " + y + " " + red + " " + green + " " + blue);
+                }
+            Log.i(LOGTAG, "Buffer END");
+
         } else {
             String base64 = intent.getDataString();
             if (base64 != null) {
