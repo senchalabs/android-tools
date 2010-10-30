@@ -57,15 +57,13 @@ public slots:
     void setTargetDevice(const QString &device);
     QString chooseAdbPath();
     void captureWindow();
-    void saveBuffer();
+    void saveCapture();
 
 private:
     QProcess m_adbConnection;
     QString m_adbData;
     QString m_adbPath;
     QString m_targetDevice;
-    QImage m_buffer;
-    QProgressDialog *m_progress;
 
     void adbExecute(const QString &command) const;
     QString adbQuery(const QString &command) const;
@@ -75,7 +73,6 @@ private:
 
 RemoteConsole::RemoteConsole(QObject *parent)
     : QObject(parent)
-    , m_progress(0)
 {
     connect(&m_adbConnection, SIGNAL(readyRead()), this, SLOT(readAdbData()));
     connect(&m_adbConnection, SIGNAL(finished(int, QProcess::ExitStatus)), SIGNAL(disconnected()));
@@ -133,39 +130,15 @@ void RemoteConsole::readAdbData()
         output.remove('\r');
 
         if (info) {
-            if (output.startsWith("Buffer START")) {
-                QStringList items = output.split(' ', QString::SkipEmptyParts);
-                if (items.count() == 4) {
-                    int width = items[2].toInt();
-                    int height = items[3].toInt();
-                    m_buffer = QImage(width, height, QImage::Format_ARGB32);
-                    m_buffer.fill(qRgb(255, 255, 255));
-                    delete m_progress;
-                    m_progress  = new QProgressDialog;
-                    m_progress->setWindowModality(Qt::WindowModal);
-                    m_progress->setCancelButton(0);
-                    m_progress->setWindowTitle("Getting the screen capture...");
-                    m_progress->show();
-                    m_progress->setMinimumWidth(400);
-                    qobject_cast<QWidget*>(parent())->hide();
-                }
-            } else if (output == "Buffer END") {
-                delete m_progress;
-                m_progress = 0;
-                qobject_cast<QWidget*>(parent())->show();
-                QTimer::singleShot(0, this, SLOT(saveBuffer()));
-            } else {
-                QStringList items = output.split(' ', QString::SkipEmptyParts);
-                if (m_progress && items.count() == 5) {
-                    int x = items.at(0).toInt();
-                    int y = items.at(1).toInt();
-                    int r = items.at(2).toInt();
-                    int g = items.at(3).toInt();
-                    int b = items.at(4).toInt();
-                    m_buffer.setPixel(x, y, qRgb(r, g, b));
-                    if (m_buffer.height())
-                        m_progress->setValue((y + 1) * 100 / m_buffer.height());
-                }
+            if (output.startsWith("Capture start"))
+                qApp->setOverrideCursor(Qt::WaitCursor);
+            if (output.startsWith("Capture saved")) {
+                qApp->restoreOverrideCursor();
+                QTimer::singleShot(0, this, SLOT(saveCapture()));
+            }
+            if (output.startsWith("Capture error")) {
+                qApp->restoreOverrideCursor();
+                QMessageBox::warning(0, "Capture fails", output);
             }
         } else {
             emit dataAvailable(output);
@@ -292,13 +265,15 @@ void RemoteConsole::captureWindow()
     adbExecute(command);
 }
 
-void RemoteConsole::saveBuffer()
+void RemoteConsole::saveCapture()
 {
     QString name = QFileDialog::getSaveFileName(0, QLatin1String("Save Capture"),
                                                 QString(), "Images (*.png *.jpg)");
     if (name.isEmpty())
         return;
-    m_buffer.save(name);
+    QString command = QLatin1String(" pull /data/data/com.sencha.remotejs/cache/remotejs-capture.png ")
+                      + name;
+    adbExecute(command);
 }
 
 static QString readFileContents(const QString &fileName)

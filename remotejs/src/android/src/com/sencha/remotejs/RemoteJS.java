@@ -28,6 +28,7 @@ import android.graphics.*;
 import android.os.Bundle;
 import android.util.Log;
 import android.webkit.*;
+import java.io.*;
 import java.text.ParseException;
 
 public class RemoteJS extends Activity {
@@ -78,26 +79,24 @@ public class RemoteJS extends Activity {
 
     protected void onNewIntent(Intent intent) {
         if (ACTION_CAPTURE.equals(intent.getAction())) {
-            Log.i(LOGTAG, "Starting capture...");
+            Log.i(LOGTAG, "Capture start");
             Picture picture = mWebView.capturePicture();
             Bitmap buffer = Bitmap.createBitmap(mWebView.getWidth(), mWebView.getHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(buffer);
             canvas.scale(mWebView.getScale(), mWebView.getScale());
             canvas.drawPicture(picture);
             Log.i(LOGTAG, "Capture finished.");
-            Log.i(LOGTAG, "Buffer START " + buffer.getWidth() + " " + buffer.getHeight());
-            for (int y = 0; y < buffer.getHeight(); ++y)
-                for (int x = 0; x < buffer.getWidth(); ++x) {
-                    int pixel = buffer.getPixel(x, y);
-                    int red = (pixel >> 16) & 0xff;
-                    int green = (pixel >> 8) & 0xff;
-                    int blue = pixel & 0xff;
-                    // skip white pixel (very common)
-                    if (red != 255 && green != 255 & blue != 255)
-                        Log.i(LOGTAG, " " + x + " " + y + " " + red + " " + green + " " + blue);
-                }
-            Log.i(LOGTAG, "Buffer END");
-
+            try {
+                File output = new File(getCacheDir(), "remotejs-capture.png");
+                Log.i(LOGTAG, "About to save to " + output.getAbsolutePath());
+                output.createNewFile();
+                FileOutputStream stream = new FileOutputStream(output);
+                buffer.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                stream.close();
+                Log.i(LOGTAG, "Capture saved to " + output.getName());
+            } catch (Exception e) {
+                Log.i(LOGTAG, "Capture error: " + e.toString());
+            }
         } else {
             String base64 = intent.getDataString();
             if (base64 != null) {
