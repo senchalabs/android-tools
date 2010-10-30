@@ -56,12 +56,16 @@ public slots:
     QString adbPath() const;
     void setTargetDevice(const QString &device);
     QString chooseAdbPath();
+    void captureWindow();
+    void saveBuffer();
 
 private:
     QProcess m_adbConnection;
     QString m_adbData;
     QString m_adbPath;
     QString m_targetDevice;
+    QImage m_buffer;
+    QProgressDialog *m_progress;
 
     void adbExecute(const QString &command) const;
     QString adbQuery(const QString &command) const;
@@ -71,6 +75,7 @@ private:
 
 RemoteConsole::RemoteConsole(QObject *parent)
     : QObject(parent)
+    , m_progress(0)
 {
     connect(&m_adbConnection, SIGNAL(readyRead()), this, SLOT(readAdbData()));
     connect(&m_adbConnection, SIGNAL(finished(int, QProcess::ExitStatus)), SIGNAL(disconnected()));
@@ -119,13 +124,52 @@ void RemoteConsole::readAdbData()
         if (!output.contains(QRegExp(QLatin1String("[A-Z]/") + LOG_FILTER)))
             continue;
 
+        bool info = output[0] == 'I';
+
         output.remove(QRegExp(QLatin1String("[A-Z]/") + LOG_FILTER
                               + QLatin1String("(\\b)*\\((\\s)*(\\d)+\\): ")));
         output.remove(QRegExp(QLatin1String("Console: ")));
         output.remove(QRegExp(QLatin1String(":(\\d)+(\\b)*")));
         output.remove('\r');
 
-        emit dataAvailable(output);
+        if (info) {
+            if (output.startsWith("Buffer START")) {
+                QStringList items = output.split(' ', QString::SkipEmptyParts);
+                if (items.count() == 4) {
+                    int width = items[2].toInt();
+                    int height = items[3].toInt();
+                    m_buffer = QImage(width, height, QImage::Format_ARGB32);
+                    m_buffer.fill(qRgb(255, 255, 255));
+                    delete m_progress;
+                    m_progress  = new QProgressDialog;
+                    m_progress->setWindowModality(Qt::WindowModal);
+                    m_progress->setCancelButton(0);
+                    m_progress->setWindowTitle("Getting the screen capture...");
+                    m_progress->show();
+                    m_progress->setMinimumWidth(400);
+                    qobject_cast<QWidget*>(parent())->hide();
+                }
+            } else if (output == "Buffer END") {
+                delete m_progress;
+                m_progress = 0;
+                qobject_cast<QWidget*>(parent())->show();
+                QTimer::singleShot(0, this, SLOT(saveBuffer()));
+            } else {
+                QStringList items = output.split(' ', QString::SkipEmptyParts);
+                if (m_progress && items.count() == 5) {
+                    int x = items.at(0).toInt();
+                    int y = items.at(1).toInt();
+                    int r = items.at(2).toInt();
+                    int g = items.at(3).toInt();
+                    int b = items.at(4).toInt();
+                    m_buffer.setPixel(x, y, qRgb(r, g, b));
+                    if (m_buffer.height())
+                        m_progress->setValue((y + 1) * 100 / m_buffer.height());
+                }
+            }
+        } else {
+            emit dataAvailable(output);
+        }
     }
 }
 
@@ -241,6 +285,22 @@ void RemoteConsole::evaluateJavaScript(const QString &script)
     adbExecute(command);
 }
 
+void RemoteConsole::captureWindow()
+{
+    QString command = QLatin1String(" shell am start -a com.sencha.remotejs.ACTION_CAPTURE -n ")
+                      + TARGET_ACTIVITY;
+    adbExecute(command);
+}
+
+void RemoteConsole::saveBuffer()
+{
+    QString name = QFileDialog::getSaveFileName(0, QLatin1String("Save Capture"),
+                                                QString(), "Images (*.png *.jpg)");
+    if (name.isEmpty())
+        return;
+    m_buffer.save(name);
+}
+
 static QString readFileContents(const QString &fileName)
 {
     QFile file(fileName);
@@ -259,9 +319,8 @@ int main(int argc, char *argv[])
     QWebSettings::globalSettings()->setFontFamily(QWebSettings::FixedFont, "Monaco");
 #endif
 
-    RemoteConsole remoteConsole;
-
     QWebView webView;
+    RemoteConsole remoteConsole(&webView);
     webView.settings()->setAttribute(QWebSettings::LocalStorageEnabled, true);
     webView.settings()->setLocalStoragePath(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
     webView.page()->mainFrame()->setHtml(readFileContents(":/interface.html"));
