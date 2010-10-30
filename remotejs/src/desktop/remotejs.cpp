@@ -267,8 +267,9 @@ void RemoteConsole::captureWindow()
 
 void RemoteConsole::saveCapture()
 {
-    QString name = QFileDialog::getSaveFileName(0, QLatin1String("Save Capture"),
-                                                QString(), "Images (*.png *.jpg)");
+    QString name = QFileDialog::getSaveFileName(qobject_cast<QWidget*>(parent()),
+                                                QLatin1String("Save Capture (PNG)"),
+                                                QString(), "Images (*.png)");
     if (name.isEmpty())
         return;
     QString command = QLatin1String(" pull /data/data/com.sencha.remotejs/cache/remotejs-capture.png ")
