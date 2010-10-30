@@ -85,6 +85,7 @@ public class RemoteJS extends Activity {
             Canvas canvas = new Canvas(buffer);
             canvas.translate(-mWebView.getScrollX(), -mWebView.getScrollY());
             canvas.scale(mWebView.getScale(), mWebView.getScale());
+            canvas.drawARGB(255, 255, 255, 255);
             canvas.drawPicture(picture);
             Log.i(LOGTAG, "Capture finished.");
             try {
