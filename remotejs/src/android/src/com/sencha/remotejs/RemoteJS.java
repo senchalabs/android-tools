@@ -50,6 +50,14 @@ public class RemoteJS extends Activity {
             public void onConsoleMessage(String message, int lineNumber, String sourceID) {
                 Log.d(LOGTAG, message);
             }
+
+            public void onProgressChanged(WebView view, int percent) {
+                if (percent < 100) {
+                    RemoteJS.this.setTitle("RemoteJS [" + percent + "%]");
+                } else {
+                    RemoteJS.this.setTitle("RemoteJS [Loaded]");
+                }
+            }
         });
         mWebView.setWebViewClient(new WebViewClient() {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
