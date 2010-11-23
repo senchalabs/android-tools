@@ -30,6 +30,7 @@ import socket
 import struct
 import sys
 import tempfile
+import time
 from subprocess import Popen, PIPE, STDOUT
 
 _ADB_PORT = 5037
@@ -224,6 +225,11 @@ def captureScreenToLocalFile(fileName):
         pngWriter.write_array(file, data)
 
     file.close()
+
+def captureWebViewToLocalFile(fileName):
+    execute("shell am start -a com.sencha.remotejs.ACTION_CAPTURE -n " + _TARGET_ACTIVITY)
+    time.sleep(5)
+    execute("pull /data/data/com.sencha.remotejs/cache/remotejs-capture.png " + fileName)
 
 def isAvailable():
     return query('version').startswith('Android Debug Bridge')

@@ -6,7 +6,7 @@ e = evaluateJS
 import thread
 import time
 
-expected = ['3', 'Nested List - Source Code Browser', '0', '1', '2', '0.9.7']
+expected = ['3', 'Map', '0', '1', '2', '1.0.0']
 obtained = []
 
 def myFilter(line):
@@ -22,13 +22,15 @@ def myFilter(line):
 installDeviceTool()
 
 thread.start_new_thread(readLogcat, (myFilter,))
-openUrl('http://dev.sencha.com/deploy/touch/examples/nestedlist/')
+openUrl('http://dev.sencha.com/deploy/touch/examples/map/')
 time.sleep(5)
 
 e('console.log(1+2)')
 e('console.log(document.title)')
 e('for (var i = 0; i < 3; ++i) console.log(i)')
 e('console.log(Ext.version)')
+
+captureWebViewToLocalFile('page.png')
 
 errorCount = 0
 for i in range(min(len(obtained), len(expected))):
