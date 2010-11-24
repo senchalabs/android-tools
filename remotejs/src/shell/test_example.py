@@ -30,7 +30,7 @@ e('console.log(document.title)')
 e('for (var i = 0; i < 3; ++i) console.log(i)')
 e('console.log(Ext.version)')
 
-captureWindow('page.png')
+captureWindow('viewport.png')
 
 errorCount = 0
 for i in range(min(len(obtained), len(expected))):
