@@ -175,7 +175,7 @@ def framebuffer():
         endConnection(socket)
         return None, None
 
-def captureScreenToLocalFile(fileName):
+def captureScreen(localFileName):
     def normalizeFrom8888(data):
         for i in range(0, len(data), 4):
             color = data[i:i+4]
@@ -211,7 +211,7 @@ def captureScreenToLocalFile(fileName):
 
     header, data = framebuffer()
 
-    file = open(fileName, 'wb')
+    file = open(localFileName, 'wb')
     data = list(data)
     for i in range(len(data)):
         data[i] = ord(data[i])
@@ -226,7 +226,7 @@ def captureScreenToLocalFile(fileName):
 
     file.close()
 
-def captureWebViewToLocalFile(fileName):
+def captureWindow(localFileName):
     cmd = ' logcat -c' # flush log
     fullCmd = 'adb '
     if targetDevice():
@@ -247,7 +247,7 @@ def captureWebViewToLocalFile(fileName):
         line = proc.stdout.readline()
         if re.match(r'^I/' + _LOG_FILTER, line):
             if line.find('Capture saved') != -1:
-                execute('pull ' + _REMOTE_CAPTURE_PATH + ' ' + fileName)
+                execute('pull ' + _REMOTE_CAPTURE_PATH + ' ' + localFileName)
                 return True
             elif line.find('Capture error') != -1:
                 return False
