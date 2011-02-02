@@ -90,7 +90,7 @@ def query(cmd):
     output = proc.stdout.read()
     proc.stdin.close()
     proc.wait()
-    return output;
+    return output
 
 def devices():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -105,7 +105,7 @@ def devices():
             data = readData(sock)
         endConnection(sock)
         devices = re.sub('List of devices attached\s+', '', reply)
-        devices = devices.splitlines();
+        devices = devices.splitlines()
         list = []
         for elem in devices:
             if elem.find('device') != -1:
@@ -256,7 +256,7 @@ def isAvailable():
     return query('version').startswith('Android Debug Bridge')
 
 def installDeviceTool():
-    uninstall('com.sencha.remotejs');
+    uninstall('com.sencha.remotejs')
     file = tempfile.NamedTemporaryFile()
     file.write(base64.b64decode(_g_base64Apk))
     file.flush()
@@ -279,22 +279,22 @@ def install(apk):
         return False, reply
 
 def evaluateJS(js):
-    expr = base64.b64encode('javascript:(function() { ' + js + '; })()');
+    expr = base64.b64encode('javascript:(function() { ' + js + '; })()')
     cmd = 'shell am start -a android.intent.action.VIEW -n ' + _TARGET_ACTIVITY \
-          + " -d '" + expr + "'";
-    execute(cmd);
+          + " -d '" + expr + "'"
+    execute(cmd)
 
 def openUrl(url):
     encodedUrl = base64.b64encode(url)
     cmd = 'shell am start -a android.intent.action.VIEW -n ' + _TARGET_ACTIVITY \
-          + " -d '" + encodedUrl + "'";
-    execute(cmd);
+          + " -d '" + encodedUrl + "'"
+    execute(cmd)
 
 def filterLogcat(line):
     line = re.sub(r'[A-Z]/' + _LOG_FILTER + '(\b)*\((\s)*(\d)+\): ', '', line)
     line = re.sub(r'Console: ', '', line)
     line = re.sub(r':(\d)+(\b)*', '', line)
-    line = re.sub(r'\r\n', '', line);
+    line = re.sub(r'\r\n', '', line)
     return line
 
 def startServer():

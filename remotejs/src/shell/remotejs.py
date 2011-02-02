@@ -80,11 +80,11 @@ def logcatThread():
 def execute(expr):
     fullUrlRe = r"^(ftp|http|https)://(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(/|/([\w#!:.?+=&%@!-/]))?"
     if expr.startswith("www") and re.match(fullUrlRe, "http://" + expr):
-        adb.openUrl("http://" + expr);
+        adb.openUrl("http://" + expr)
     elif re.match(fullUrlRe, expr):
-        adb.openUrl(expr);
+        adb.openUrl(expr)
     else:
-        adb.evaluateJS(expr);
+        adb.evaluateJS(expr)
 
 def inputThread():
     expr = ""
