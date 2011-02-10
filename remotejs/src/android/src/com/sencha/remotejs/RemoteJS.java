@@ -76,7 +76,7 @@ public class RemoteJS extends Activity {
             mWebView.loadUrl(address);
         } else {
             try {
-                address = JSBase64.decode(base64);
+                address = Base64.decode(base64);
                 mWebView.loadUrl(address);
             } catch (ParseException e) {
             }
@@ -111,7 +111,7 @@ public class RemoteJS extends Activity {
             String base64 = intent.getDataString();
             if (base64 != null) {
                 try {
-                    String address = JSBase64.decode(base64);
+                    String address = Base64.decode(base64);
                     mWebView.loadUrl(address);
                 } catch (ParseException e) {
                 }

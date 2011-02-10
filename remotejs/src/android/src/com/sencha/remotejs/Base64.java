@@ -24,7 +24,7 @@ package com.sencha.remotejs;
 
 import java.text.ParseException;
 
-public class JSBase64 {
+public class Base64 {
     public static String encode(String input) {
         return "";
     }
